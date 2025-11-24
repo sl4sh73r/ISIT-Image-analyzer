@@ -1,0 +1,5 @@
+flask
+requests
+pillow
+lmstudio
+Werkzeug==3.0.1
