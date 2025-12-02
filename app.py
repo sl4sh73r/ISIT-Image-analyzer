@@ -436,13 +436,17 @@ def analyze_image():
                     print(f"  Positive class: '{positive_lower}'")
                     print(f"  Negative class: '{negative_lower}'")
                     
-                    # Простая логика: проверяем точное соответствие ответа ожидаемому классу
+                    # Логика: проверяем, к какому классу ближе ответ модели
                     if ground_truth == 'positive':
-                        # Ожидаем положительный класс - ответ должен содержать слова положительного класса
-                        is_correct = positive_lower in entity_lower
+                        # Ожидаем положительный класс
+                        # Проверяем, что ответ больше похож на положительный класс
+                        positive_match = positive_lower in entity_lower and not (negative_lower in entity_lower and entity_lower.startswith(negative_lower.split()[0]))
+                        is_correct = positive_match
                     elif ground_truth == 'negative':
-                        # Ожидаем отрицательный класс - ответ должен содержать слова отрицательного класса
-                        is_correct = negative_lower in entity_lower
+                        # Ожидаем отрицательный класс
+                        # Проверяем, что ответ больше похож на отрицательный класс
+                        negative_match = negative_lower in entity_lower or entity_lower.startswith(negative_lower.split()[0])
+                        is_correct = negative_match
                     else:
                         is_correct = False
                     
@@ -609,10 +613,16 @@ def get_model_comparison():
                             negative_lower = negative_class.lower()
                             
                             # Проверяем, соответствует ли ответ правильному классу
-                            if ground_truth == 'positive' and positive_lower in entity_lower:
-                                correct_predictions += 1
-                            elif ground_truth == 'negative' and negative_lower in entity_lower:
-                                correct_predictions += 1
+                            if ground_truth == 'positive':
+                                # Проверяем, что ответ больше похож на положительный класс
+                                positive_match = positive_lower in entity_lower and not (negative_lower in entity_lower and entity_lower.startswith(negative_lower.split()[0]))
+                                if positive_match:
+                                    correct_predictions += 1
+                            elif ground_truth == 'negative':
+                                # Проверяем, что ответ больше похож на отрицательный класс  
+                                negative_match = negative_lower in entity_lower or entity_lower.startswith(negative_lower.split()[0])
+                                if negative_match:
+                                    correct_predictions += 1
 
             comparison_metrics['performance_metrics'][model_name] = {
                 'successful_predictions': successful_count,

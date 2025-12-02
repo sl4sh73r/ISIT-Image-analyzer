@@ -167,10 +167,10 @@ async function loadVLMModels() {
                 }
             } else {
                 console.error('❌ HTTP ошибка:', xhr.status, xhr.statusText);
-                updateStatus('error', 'Корпоративный API недоступен');
+                updateStatus('error', 'Ollama API недоступен');
                 modelsList.innerHTML = `
                     <div class="error-box">
-                        <p>❌ Не удалось подключиться к корпоративному API</p>
+                        <p>❌ Не удалось подключиться к Ollama API</p>
                         <p class="hint-text">HTTP ${xhr.status}: ${xhr.statusText}</p>
                     </div>
                 `;
@@ -199,7 +199,7 @@ function displayModelsSelection(models) {
         modelsList.innerHTML = `
             <div class="no-models">
                 <p>📭 VLM-модели не найдены</p>
-                <p class="hint-text">Модели с поддержкой vision автоматически загружаются из корпоративного API</p>
+                <p class="hint-text">Модели с поддержкой vision автоматически загружаются из Ollama API</p>
             </div>
         `;
         return;
@@ -652,7 +652,7 @@ async function processDatasetWithModels() {
 
         showNotification(`🔁 Обработка моделью ${modelShort} (${modelIndex + 1}/${selectedModels.length})`, 'info');
 
-        // Загрузка модели (в корпоративном API модели всегда доступны)
+        // Загрузка модели (в Ollama API модели всегда доступны)
         try {
             const loadResponse = await fetch('/api/load-model', {
                 method: 'POST',
