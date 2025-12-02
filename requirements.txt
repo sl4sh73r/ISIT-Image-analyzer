@@ -3,3 +3,7 @@ requests
 pillow
 lmstudio
 Werkzeug==3.0.1
+python-dotenv
+numpy
+scikit-learn
+flask-cors

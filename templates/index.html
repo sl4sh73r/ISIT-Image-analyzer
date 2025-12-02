@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Model Comparison - LM Studio</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>AI Model Comparison - Корпоративный API</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=1.1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -28,12 +28,12 @@
                 </svg>
                 <div class="logo-text">
                     <h1>AI Model Comparison</h1>
-                    <p class="logo-subtitle">qwen3-vl-4b vs gemma-3-4b</p>
+                    <p class="logo-subtitle">Корпоративный API</p>
                 </div>
             </div>
             <div class="header-right">
                 <button class="check-model-btn" id="checkModelBtn" title="Проверить активную модель">
-                    <span class="btn-icon">🔍</span>
+                    <span class="btn-icon"></span>
                     <span class="btn-text">Активная модель</span>
                 </button>
                 <div class="status-badge" id="statusBadge">
@@ -45,19 +45,58 @@
         
         <div class="active-model-popup" id="activeModelPopup" style="display: none;">
             <div class="popup-content">
-                <button class="popup-close" id="popupClose">✕</button>
-                <h3>🔍 Активная модель</h3>
+                <button class="popup-close" id="popupClose">X</button>
+                <h3>Активная модель</h3>
                 <div id="activeModelInfo"></div>
             </div>
         </div>
 
         <div class="info-banner" id="infoBanner">
-            <div class="info-icon">ℹ️</div>
+            <div class="info-icon"></div>
             <div class="info-content">
-                <strong>⚠️ Важно:</strong> LM Studio одновременно держит в памяти только одну модель. 
-                Для сравнения: <strong>загрузите первую модель → проанализируйте изображение → 
-                выгрузите её → загрузите вторую → проанализируйте то же изображение.</strong> 
-                Приложение покажет сравнение.
+                <strong>Olama API:</strong> 
+                Приложение автоматически загружает список VLM-моделей из корпоративного API. 
+                Выберите модели и обработайте датасет без необходимости локальной установки.
+            </div>
+        </div>
+
+        <!-- Выбор режима -->
+        <div class="mode-section" id="modeSelection">
+            <div class="mode-switcher">
+                <button class="mode-tab active" id="descriptionModeBtn" data-mode="description">
+                    Описание
+                </button>
+                <button class="mode-tab" id="classificationModeBtn" data-mode="classification">
+                    Классификация
+                </button>
+            </div>
+            
+            <div class="classification-panel" id="classificationSetup" style="display: none;">
+                <div class="input-row">
+                    <div class="input-field">
+                        <label>Положительный класс</label>
+                        <input type="text" id="positiveClass" value="Самолет">
+                    </div>
+                    <div class="input-field">
+                        <label>Отрицательный класс</label>
+                        <input type="text" id="negativeClass" value="Не самолет">
+                    </div>
+                </div>
+                <div class="ground-truth-panel" id="groundTruthSetup" style="display: none;">
+                    <div class="panel-header">Укажите правильные классы</div>
+                    <div class="ground-truth-grid" id="groundTruthImages"></div>
+                </div>
+            </div>
+        </div>
+            
+            <div class="models-header">
+                <button class="btn btn-secondary" id="refreshModelsBtn">
+                    Обновить модели
+                </button>
+            </div>
+            
+            <div class="models-list" id="modelsList">
+                <div class="loading-models">Загрузка доступных моделей...</div>
             </div>
         </div>
 
@@ -76,44 +115,27 @@
                                 </linearGradient>
                             </defs>
                         </svg>
-                        <h2>Перетащите изображение сюда</h2>
-                        <p>или нажмите для выбора файла</p>
-                        <input type="file" id="fileInput" accept="image/*" style="display: none;">
-                        <button class="upload-button" id="uploadButton">Выбрать файл</button>
-                        <p class="file-types">PNG, JPG, JPEG, GIF, BMP, WEBP (макс. 16 МБ)</p>
+                        <h2>Перетащите изображения сюда</h2>
+                        <p>или нажмите для выбора файлов</p>
+                        <input type="file" id="fileInput" accept="image/*" multiple style="display: none;">
+                        <button class="upload-button" id="uploadButton">Выбрать файлы</button>
+                        <p class="file-types">PNG, JPG, JPEG, GIF, BMP, WEBP • До 35 фото • Макс. 100 МБ</p>
                     </div>
                     
                     <div class="preview-container" id="previewContainer" style="display: none;">
-                        <img id="imagePreview" alt="Preview" />
-                        <button class="remove-btn" id="removeBtn">✕</button>
+                        <div class="images-grid" id="imagesGrid"></div>
+                        <div class="dataset-info" id="datasetInfo"></div>
+                        <button class="remove-btn" id="removeBtn">X Очистить все</button>
                     </div>
                 </div>
                 
-                <!-- Кнопки для запуска моделей -->
-                <div class="model-buttons" id="modelButtons" style="display: none;">
-                    <div class="button-group">
-                        <button class="model-btn model-btn-qwen" id="analyzeQwenBtn">
-                            <span class="model-icon">🤖</span>
-                            <div class="model-btn-content">
-                                <span class="model-btn-title">Qwen3-VL-4B</span>
-                                <span class="model-btn-subtitle">Alibaba Vision Model</span>
-                            </div>
-                            <span class="model-status" id="qwenStatus"></span>
-                        </button>
-                        
-                        <button class="model-btn model-btn-gemma" id="analyzeGemmaBtn">
-                            <span class="model-icon">🔮</span>
-                            <div class="model-btn-content">
-                                <span class="model-btn-title">Gemma-3-4B</span>
-                                <span class="model-btn-subtitle">Google Vision Model</span>
-                            </div>
-                            <span class="model-status" id="gemmaStatus"></span>
-                        </button>
+                <div class="processing-panel" id="modelButtons" style="display: none;">
+                    <div class="models-info" id="selectedModelsInfo">
+                        Выберите модели для обработки
                     </div>
-                    <p class="model-buttons-hint">
-                        💡 <strong>Шаг 1:</strong> Загрузите Qwen в LM Studio → Нажмите кнопку Qwen<br>
-                        💡 <strong>Шаг 2:</strong> Выгрузите Qwen, загрузите Gemma → Нажмите кнопку Gemma
-                    </p>
+                    <button class="btn btn-primary" id="startProcessingBtn" disabled>
+                        Начать обработку
+                    </button>
                 </div>
             </div>
 
@@ -123,28 +145,52 @@
                 <p class="loading-subtext" id="loadingSubtext">Это может занять 10-20 секунд</p>
             </div>
 
-            <div class="results-section" id="resultsSection" style="display: none;">
-                <h2 class="results-title">📊 Сравнение моделей</h2>
-                
-                <!-- Общее сравнение -->
-                <div class="comparison-summary" id="comparisonSummary"></div>
-
-                <!-- Детальные результаты -->
-                <div class="models-grid" id="modelsGrid"></div>
+            <div class="results-panel" id="resultsSection" style="display: none;">
+                <div class="panel-header">Результаты анализа</div>
+                <div class="results-summary" id="comparisonSummary"></div>
+                <div class="results-grid" id="modelsGrid"></div>
             </div>
 
             <div class="error-section" id="errorSection" style="display: none;">
-                <div class="error-icon">⚠️</div>
+                <div class="error-icon">Ошибка</div>
                 <h3>Ошибка</h3>
                 <p id="errorMessage"></p>
             </div>
         </main>
 
         <footer class="footer">
-            <p>Powered by LM Studio | qwen3-vl-4b vs gemma-3-4b</p>
+            <p>Powered by Olama API | Создано Sl4sh73r</p>
         </footer>
     </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        // Простой тест для проверки работы JavaScript
+        console.log('JavaScript загружен успешно');
+        window.addEventListener('load', () => {
+            console.log('Страница полностью загружена');
+            setTimeout(() => {
+                console.log('Тестируем API через 3 секунды...');
+                // Простой тест API
+                fetch('/api/vlm-models')
+                    .then(response => {
+                        console.log('Fetch response:', response);
+                        return response.text();
+                    })
+                    .then(text => {
+                        console.log('Response text:', text);
+                        try {
+                            const data = JSON.parse(text);
+                            console.log('Parsed data:', data);
+                        } catch (e) {
+                            console.error('JSON parse error:', e);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Fetch error:', error);
+                    });
+            }, 3000);
+        });
+    </script>
 </body>
 </html>
